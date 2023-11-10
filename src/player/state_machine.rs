@@ -1,4 +1,4 @@
-use super::{input::InputAction, Player, PlayerSet};
+use super::{Player, PlayerSet};
 use bevy::prelude::*;
 
 use seldom_state::prelude::*;
@@ -72,7 +72,7 @@ pub mod states {
 
 pub mod triggers {
     use super::*;
-    use crate::player::movement::{velocity::*, *};
+    use crate::player::movement::{velocity::*, grappler::*, jumper::*};
     use bevy_rapier2d::prelude::*;
 
     #[derive(Copy, Clone, Debug, Reflect, PartialEq)]
