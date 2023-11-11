@@ -159,7 +159,7 @@ pub mod triggers {
         type Param<'w, 's> = Query<'w, 's, &'static Jumper>;
 
         fn trigger(&self, entity: Entity, param: Self::Param<'_, '_>) -> bool {
-            param.get(entity).is_ok_and(|j| j.can_jump())
+            param.get(entity).is_ok_and(|j| j.should_jump())
         }
     }
 }

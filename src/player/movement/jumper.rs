@@ -3,6 +3,7 @@ use super::*;
 #[derive(Default, Component, Clone, Debug, PartialEq, Reflect)]
 pub struct Jumper {
     pub jump_force: f32,
+    pub x_multi: f32,
     pub release_multi: f32,
     coyote_time: Timer,
     jump_buffer: Timer,
@@ -42,10 +43,9 @@ pub fn jumper(
             return;
         }
 
-        jumper.coyote_time.tick(Duration::from_secs(1000));
-        jumper.jump_buffer.tick(Duration::from_secs(1000));
-        jumper.can_release = true;
-        vel.y += jumper.jump_force;
+        let v = jumper.jump(Vec2::new(vel.x, vel.y));
+        vel.x = v.x;
+        vel.y = v.y;
     }
 }
 
@@ -53,19 +53,38 @@ impl Jumper {
     pub fn new(
         jump_force: f32,
         release_multi: f32,
+        x_multi: f32,
         coyote_time: f32,
         jump_buffer_time: f32,
     ) -> Self {
         Self {
             jump_force,
             release_multi,
+            x_multi,
             coyote_time: Timer::from_seconds(coyote_time, TimerMode::Once),
             jump_buffer: Timer::from_seconds(jump_buffer_time, TimerMode::Once),
             can_release: false,
         }
     }
 
-    pub fn can_jump(&self) -> bool {
+    pub fn should_jump(&self) -> bool {
         !self.coyote_time.finished() && !self.jump_buffer.finished()
+    }
+
+    pub fn coyote_timer_remaining(&self) -> f32 {
+        self.coyote_time.remaining_secs()
+    }
+
+    pub fn jump_buffer_remaining(&self) -> f32 {
+        self.jump_buffer.remaining_secs()
+    }
+
+    /// Takes the current velocity and returns what the velocity will be after the jump
+    /// Also resets the coyote timer and jump buffer timer and sets can_release to true
+    pub fn jump(&mut self, current_vel: Vec2) -> Vec2 {
+        self.coyote_time.tick(Duration::from_secs(1000));
+        self.jump_buffer.tick(Duration::from_secs(1000));
+        self.can_release = true;
+        current_vel + Vec2::new(0f32, self.jump_force) * Vec2::new(self.x_multi, 1f32)
     }
 }

@@ -8,17 +8,17 @@ use bevy_rapier2d::prelude::*;
 
 use leafwing_input_manager::prelude::ActionState;
 
-pub mod velocity;
-pub mod gravity;
-pub mod jumper;
-pub mod horizontal_movement;
 pub mod grappler;
+pub mod gravity;
+pub mod horizontal_movement;
+pub mod jumper;
+pub mod velocity;
 
-use velocity::*;
-use gravity::*;
-use jumper::*;
-use horizontal_movement::*;
 use grappler::*;
+use gravity::*;
+use horizontal_movement::*;
+use jumper::*;
+use velocity::*;
 
 pub(super) struct MovementPlugin;
 
@@ -60,7 +60,7 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
         RigidBody::KinematicPositionBased,
         KinematicVelocity::default(),
         KinematicGravityUser,
-        Jumper::new(400f32, 0.35f32, 0.175f32, 0.2f32),
+        Jumper::new(400f32, 0.35f32, 1.2f32, 0.175f32, 0.2f32),
         HorizontalMovement {
             max_speed: 250f32,
             acceleration_time: 0.2f32,
@@ -83,6 +83,6 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
             apply_impulse_to_dynamic_bodies: true,
             ..Default::default()
         },
-        Grappler::new(300f32, 75f32, 200f32, 0.008f32, 0.2f32),
+        Grappler::new(300f32, 75f32, 200f32, 0.008f32, 0.2f32, 0.4f32),
     ));
 }
