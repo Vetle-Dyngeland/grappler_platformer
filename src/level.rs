@@ -41,6 +41,20 @@ fn init(mut cmd: Commands) {
     cmd.spawn((
         SpriteBundle {
             sprite: Sprite {
+                color: Color::rgb_u8(205, 255, 150),
+                custom_size: Some(Vec2::new(25f32, 700f32)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(250f32, 150f32, 0f32),
+            ..Default::default()
+        },
+        Collider::cuboid(12.75f32, 350f32),
+        Name::from("Wall #2"),
+    ));
+
+    cmd.spawn((
+        SpriteBundle {
+            sprite: Sprite {
                 color: Color::rgb_u8(255, 75, 125),
                 custom_size: Some(Vec2::new(50f32, 50f32)),
                 ..Default::default()
@@ -63,7 +77,7 @@ fn init(mut cmd: Commands) {
             ..Default::default()
         },
         GrapplePoint,
-        Name::from("Grapple Point"),
+        Name::from("Grapple Point #2"),
     ));
 }
 
