@@ -11,14 +11,14 @@ impl Plugin for StateMachinePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, init.in_set(PlayerSet::StateMachine))
             .register_type::<GroundedState>()
-            .register_type::<InAirState>();
+            .register_type::<InAirState>()
+            .register_type::<WallState>();
     }
 }
 
 fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
     cmd.entity(player_query.single()).insert((
-        GroundedState::Idle,
-        StateMachine::default()
+        GroundedState::Idle, StateMachine::default()
             .trans::<InAirState>(GroundedTrigger, GroundedState::Idle)
             .trans::<GroundedState>(
                 StateIsTrigger(GroundedState::Walking)
@@ -67,6 +67,14 @@ pub mod states {
         Rising,
         Falling,
         Grapple,
+    }
+
+    #[derive(Clone, Copy, Component, Reflect, PartialEq, PartialOrd, Debug)]
+    #[component(storage = "SparseSet")]
+    pub enum WallState {
+        Rising,
+        Sliding,
+        Jumping,
     }
 }
 

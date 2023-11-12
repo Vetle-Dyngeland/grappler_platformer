@@ -5,8 +5,10 @@ pub struct Jumper {
     pub jump_force: f32,
     pub x_multi: f32,
     pub release_multi: f32,
+    pub walljump_multi: Vec2,
     pub can_release: bool,
     coyote_time: Timer,
+    walljump_coyote_time: Timer,
     jump_buffer: Timer,
 }
 
@@ -21,31 +23,41 @@ pub fn jumper(
     time: Res<Time>,
 ) {
     for (mut vel, mut jumper, state, input, output) in query.iter_mut() {
-        if vel.y > 0f32 && input.released(InputAction::Jump) && jumper.can_release {
-            jumper.can_release = false;
-            vel.y *= jumper.release_multi;
-        }
-        jumper
-            .coyote_time
-            .tick(Duration::from_secs_f32(time.delta_seconds()));
-        if output.grounded && state.is_some_and(|s| *s != GroundedState::Jumping) {
-            jumper.coyote_time.reset();
-        }
+        jumper_timers(&mut vel, &mut jumper, state, input, output, &time);
 
-        jumper
-            .jump_buffer
-            .tick(Duration::from_secs_f32(time.delta_seconds()));
-        if input.just_pressed(InputAction::Jump) {
-            jumper.jump_buffer.reset();
-        }
-
-        if !state.is_some_and(|s| *s == GroundedState::Jumping) {
+        if state.is_some_and(|s| *s == GroundedState::Jumping) {
+            let v = jumper.jump(Vec2::new(vel.x, vel.y));
+            vel.x = v.x;
+            vel.y = v.y;
             return;
         }
+    }
+}
 
-        let v = jumper.jump(Vec2::new(vel.x, vel.y));
-        vel.x = v.x;
-        vel.y = v.y;
+fn jumper_timers(
+    vel: &mut Mut<KinematicVelocity>,
+    jumper: &mut Mut<Jumper>,
+    state: Option<&GroundedState>,
+    input: &ActionState<InputAction>,
+    output: &KinematicCharacterControllerOutput,
+    time: &Res<Time>,
+) {
+    if vel.y > 0f32 && input.released(InputAction::Jump) && jumper.can_release {
+        jumper.can_release = false;
+        vel.y *= jumper.release_multi;
+    }
+    jumper
+        .coyote_time
+        .tick(Duration::from_secs_f32(time.delta_seconds()));
+    if output.grounded && state.is_some_and(|s| *s != GroundedState::Jumping) {
+        jumper.coyote_time.reset();
+    }
+
+    jumper
+        .jump_buffer
+        .tick(Duration::from_secs_f32(time.delta_seconds()));
+    if input.just_pressed(InputAction::Jump) {
+        jumper.jump_buffer.reset();
     }
 }
 
@@ -54,6 +66,7 @@ impl Jumper {
         jump_force: f32,
         release_multi: f32,
         x_multi: f32,
+        walljump_multi: Vec2,
         coyote_time: f32,
         jump_buffer_time: f32,
     ) -> Self {
@@ -61,7 +74,9 @@ impl Jumper {
             jump_force,
             release_multi,
             x_multi,
+            walljump_multi,
             coyote_time: Timer::from_seconds(coyote_time, TimerMode::Once),
+            walljump_coyote_time: Timer::from_seconds(coyote_time, TimerMode::Once),
             jump_buffer: Timer::from_seconds(jump_buffer_time, TimerMode::Once),
             can_release: false,
         }

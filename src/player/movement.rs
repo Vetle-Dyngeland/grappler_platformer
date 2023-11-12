@@ -64,7 +64,7 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
         RigidBody::KinematicPositionBased,
         KinematicVelocity::default(),
         KinematicGravityUser,
-        Jumper::new(400f32, 0.35f32, 1.2f32, 0.175f32, 0.2f32),
+        Jumper::new(400f32, 0.35f32, 1.2f32, Vec2::new(1.2f32, 0.8f32), 0.175f32, 0.2f32),
         HorizontalMovement {
             max_speed: 250f32,
             acceleration_time: 0.2f32,
