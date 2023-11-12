@@ -7,10 +7,10 @@ pub struct Grappler {
     pub max_desired: f32,
     pub far_springyness: f32,
     pub close_springyness: f32,
-    pub grapple_time: f32,
+    pub grapple_buffer: f32,
     current_point: Option<Entity>,
     closest_point: Option<Entity>,
-    grapple_time_begin: Option<f32>,
+    grapple_buffer_timer: Option<f32>,
 }
 
 impl Grappler {
@@ -20,7 +20,7 @@ impl Grappler {
         max_desired: f32,
         far_springyness: f32,
         close_springyness: f32,
-        grapple_time: f32,
+        grapple_buffer: f32,
     ) -> Self {
         Self {
             range,
@@ -28,10 +28,10 @@ impl Grappler {
             max_desired,
             far_springyness,
             close_springyness,
-            grapple_time,
+            grapple_buffer,
             current_point: None,
             closest_point: None,
-            grapple_time_begin: None,
+            grapple_buffer_timer: None,
         }
     }
 
@@ -61,7 +61,7 @@ pub fn grappler_movement(
     for (transform, mut grappler, mut vel, input, mut jumper) in grappler.iter_mut() {
         get_closest_points((transform, &mut grappler), &points_vec);
 
-        if grappler_time(&mut grappler, &input, &time) {
+        if grapple_buffer(&mut grappler, &input, &time) {
             continue;
         }
 
@@ -121,21 +121,21 @@ fn get_closest_points(
 
 }
 /// returns true if should continue
-fn grappler_time(
+fn grapple_buffer(
     grappler: &mut Mut<Grappler>,
     input: &ActionState<InputAction>,
     time: &Res<Time>,
 ) -> bool {
-    if let Some(t) = grappler.grapple_time_begin {
-        grappler.grapple_time_begin = Some(t + time.delta_seconds());
+    if let Some(t) = grappler.grapple_buffer_timer {
+        grappler.grapple_buffer_timer = Some(t + time.delta_seconds());
     }
 
     if input.just_pressed(InputAction::Grapple) {
-        grappler.grapple_time_begin = Some(0f32);
+        grappler.grapple_buffer_timer = Some(0f32);
     }
 
     if !input.pressed(InputAction::Grapple) {
-        grappler.grapple_time_begin = None;
+        grappler.grapple_buffer_timer = None;
         grappler.current_point = None;
         return true;
     }
@@ -149,10 +149,10 @@ fn get_point(
     let current = match grappler.current_point {
         Some(e) => e,
         None => {
-            match grappler.grapple_time_begin {
+            match grappler.grapple_buffer_timer {
                 None => return Err(Some("Hasn't started grappling yet?".to_string())),
                 Some(t) => {
-                    if t >= grappler.grapple_time {
+                    if t >= grappler.grapple_buffer {
                         return Err(None);
                     }
                 }
