@@ -18,7 +18,8 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
             input_map: InputMap::default()
                 .insert(VirtualAxis::horizontal_arrow_keys(), InputAction::Run)
                 .insert(KeyCode::C, InputAction::Jump)
-                .insert(KeyCode::X, InputAction::Grapple)
+                //.insert(KeyCode::X, InputAction::Grapple)
+                .insert(KeyCode::X, InputAction::Slingshot)
                 .build(),
         });
 }
@@ -28,4 +29,5 @@ pub enum InputAction {
     Run,
     Jump,
     Grapple,
+    Slingshot,
 }
