@@ -10,6 +10,7 @@ pub struct Jumper {
     coyote_time: Timer,
     walljump_coyote_time: Timer,
     jump_buffer: Timer,
+    current_wall: Option<Entity>,
 }
 
 pub fn jumper(
@@ -32,6 +33,28 @@ pub fn jumper(
             return;
         }
     }
+}
+
+fn get_walls(
+    jumper: &mut Mut<Jumper>,
+    collider: &Collider,
+    transform: &GlobalTransform,
+    state: Option<&GroundedState>,
+    walls: Vec<Entity>,
+    ctx: Res<RapierContext>
+) {
+    if state.is_some() {
+        jumper.current_wall = None;
+        return;
+    }
+
+    let pos = transform.translation().truncate();
+
+    let filter = QueryFilter::default().exclude_sensors();
+    let max_toi = 3f32;
+
+    // TODO: Complete this
+    if let Some((entity, hit)) = ctx.cast_shape();
 }
 
 fn jumper_timers(
