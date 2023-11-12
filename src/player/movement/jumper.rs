@@ -5,9 +5,9 @@ pub struct Jumper {
     pub jump_force: f32,
     pub x_multi: f32,
     pub release_multi: f32,
+    pub can_release: bool,
     coyote_time: Timer,
     jump_buffer: Timer,
-    can_release: bool,
 }
 
 pub fn jumper(

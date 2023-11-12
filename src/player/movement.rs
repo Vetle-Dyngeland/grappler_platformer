@@ -12,12 +12,14 @@ pub mod grappler;
 pub mod gravity;
 pub mod horizontal_movement;
 pub mod jumper;
+pub mod slingshot;
 pub mod velocity;
 
 use grappler::*;
 use gravity::*;
 use horizontal_movement::*;
 use jumper::*;
+use slingshot::*;
 use velocity::*;
 
 pub(super) struct MovementPlugin;
@@ -34,6 +36,7 @@ impl Plugin for MovementPlugin {
                     jumper,
                     horizontal_movement,
                     grappler_movement,
+                    slingshot,
                 )
                     .in_set(PlayerSet::Movement),
             )
@@ -42,7 +45,8 @@ impl Plugin for MovementPlugin {
             .register_type::<Jumper>()
             .register_type::<HorizontalMovement>()
             .register_type::<KinematicGravityUser>()
-            .register_type::<Grappler>()
+            .register_type::<Slingshot>()
+            .register_type::<Grappler>();
     }
 }
 
@@ -83,6 +87,14 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
             apply_impulse_to_dynamic_bodies: true,
             ..Default::default()
         },
+        Slingshot::new(
+            800f32,
+            250f32,
+            Vec2::new(0.8f32, 1f32),
+            0.5f32,
+            0.5f32,
+            0.7f32,
+        ),
         // Dont really like current grappler, will probably not include it/rework it
         //Grappler::new(300f32, 75f32, 200f32, 0.008f32, 0.2f32, 0.4f32),
     ));
