@@ -51,6 +51,20 @@ fn init(mut cmd: Commands) {
         GrapplePoint,
         Name::from("Grapple Point"),
     ));
+
+    cmd.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::rgb_u8(255, 75, 125),
+                custom_size: Some(Vec2::new(50f32, 50f32)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(200f32, 300f32, 0f32),
+            ..Default::default()
+        },
+        GrapplePoint,
+        Name::from("Grapple Point"),
+    ));
 }
 
 #[derive(Component)]
