@@ -33,7 +33,6 @@ impl Plugin for MovementPlugin {
                     kinematic_gravity,
                     jumper,
                     horizontal_movement,
-                    get_closest_points,
                     grappler_movement,
                 )
                     .in_set(PlayerSet::Movement),
@@ -42,7 +41,8 @@ impl Plugin for MovementPlugin {
             .register_type::<KinematicGravity>()
             .register_type::<Jumper>()
             .register_type::<HorizontalMovement>()
-            .register_type::<KinematicGravityUser>();
+            .register_type::<KinematicGravityUser>()
+            .register_type::<Grappler>()
     }
 }
 
@@ -83,6 +83,7 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
             apply_impulse_to_dynamic_bodies: true,
             ..Default::default()
         },
-        Grappler::new(300f32, 75f32, 200f32, 0.008f32, 0.2f32, 0.4f32),
+        // Dont really like current grappler, will probably not include it/rework it
+        //Grappler::new(300f32, 75f32, 200f32, 0.008f32, 0.2f32, 0.4f32),
     ));
 }
