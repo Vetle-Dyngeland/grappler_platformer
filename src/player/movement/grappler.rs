@@ -2,20 +2,20 @@ use super::*;
 
 #[derive(Default, Component, Clone, Debug, PartialEq, Reflect)]
 pub struct Grappler {
-    pub max_grapple_distance: f32,
+    pub range: f32,
     pub min_desired: f32,
     pub max_desired: f32,
     pub far_springyness: f32,
     pub close_springyness: f32,
     pub grapple_time: f32,
     current_point: Option<Entity>,
-    closest_grappleable_point: Option<Entity>,
-    time_since_started_grapple: Option<f32>,
+    closest_point: Option<Entity>,
+    grapple_time_begin: Option<f32>,
 }
 
 impl Grappler {
     pub fn new(
-        max_grapple_distance: f32,
+        range: f32,
         min_desired: f32,
         max_desired: f32,
         far_springyness: f32,
@@ -23,50 +23,24 @@ impl Grappler {
         grapple_time: f32,
     ) -> Self {
         Self {
-            max_grapple_distance,
+            range,
             min_desired,
             max_desired,
             far_springyness,
             close_springyness,
             grapple_time,
             current_point: None,
-            closest_grappleable_point: None,
-            time_since_started_grapple: None,
+            closest_point: None,
+            grapple_time_begin: None,
         }
     }
 
     pub fn can_grapple(&self) -> bool {
-        self.closest_grappleable_point.is_some()
+        self.closest_point.is_some()
     }
 
     pub fn is_grappling(&self) -> bool {
         self.current_point.is_some()
-    }
-}
-
-pub fn get_closest_points(
-    mut grappler: Query<(&GlobalTransform, &mut Grappler), Without<GrapplePoint>>,
-    points: Query<(Entity, &GlobalTransform), (With<GrapplePoint>, Without<Grappler>)>,
-) {
-    for (transform, mut grappler) in grappler.iter_mut() {
-        // Find closest point to grappler
-        let mut closest = (f32::MAX, None);
-        for (e, point_transform) in points.iter() {
-            let dist = point_transform
-                .translation()
-                .truncate()
-                .distance(transform.translation().truncate());
-
-            if dist > grappler.max_grapple_distance {
-                continue;
-            }
-
-            if dist < closest.0 {
-                closest = (dist, Some(e));
-            }
-        }
-
-        grappler.closest_grappleable_point = closest.1;
     }
 }
 
@@ -81,9 +55,12 @@ pub fn grappler_movement(
     points: Query<(Entity, &GlobalTransform), With<GrapplePoint>>,
     time: Res<Time>,
 ) {
-    let points = points.iter().collect::<HashMap<Entity, &GlobalTransform>>();
+    let points_map = points.iter().collect::<HashMap<Entity, &GlobalTransform>>();
+    let points_vec = points.iter().collect::<Vec<(Entity, &GlobalTransform)>>();
 
     for (transform, mut grappler, mut vel, input, mut jumper) in grappler.iter_mut() {
+        get_closest_points((transform, &mut grappler), &points_vec);
+
         if grappler_time(&mut grappler, &input, &time) {
             continue;
         }
@@ -94,7 +71,7 @@ pub fn grappler_movement(
             continue;
         }
 
-        let point = match get_point(&points, &mut grappler) {
+        let point = match get_point(&points_map, &mut grappler) {
             Ok(v) => v,
             Err(s) => {
                 if let Some(s) = s {
@@ -119,22 +96,46 @@ pub fn grappler_movement(
     }
 }
 
+fn get_closest_points(
+    grappler: (&GlobalTransform, &mut Mut<Grappler>),
+    points: &Vec<(Entity, &GlobalTransform)>,
+) {
+    // Find closest point to grappler
+    let mut closest = (f32::MAX, None);
+    for (e, point_transform) in points.iter() {
+        let dist = point_transform
+            .translation()
+            .truncate()
+            .distance(grappler.0.translation().truncate());
+
+        if dist > grappler.1.range {
+            continue;
+        }
+
+        if dist < closest.0 {
+            closest = (dist, Some(e));
+        }
+    }
+
+    grappler.1.closest_point = closest.1.copied();
+
+}
 /// returns true if should continue
 fn grappler_time(
     grappler: &mut Mut<Grappler>,
     input: &ActionState<InputAction>,
     time: &Res<Time>,
 ) -> bool {
-    if let Some(t) = grappler.time_since_started_grapple {
-        grappler.time_since_started_grapple = Some(t + time.delta_seconds());
+    if let Some(t) = grappler.grapple_time_begin {
+        grappler.grapple_time_begin = Some(t + time.delta_seconds());
     }
 
     if input.just_pressed(InputAction::Grapple) {
-        grappler.time_since_started_grapple = Some(0f32);
+        grappler.grapple_time_begin = Some(0f32);
     }
 
     if !input.pressed(InputAction::Grapple) {
-        grappler.time_since_started_grapple = None;
+        grappler.grapple_time_begin = None;
         grappler.current_point = None;
         return true;
     }
@@ -148,7 +149,7 @@ fn get_point(
     let current = match grappler.current_point {
         Some(e) => e,
         None => {
-            match grappler.time_since_started_grapple {
+            match grappler.grapple_time_begin {
                 None => return Err(Some("Hasn't started grappling yet?".to_string())),
                 Some(t) => {
                     if t >= grappler.grapple_time {
@@ -157,7 +158,7 @@ fn get_point(
                 }
             }
 
-            let closest = grappler.closest_grappleable_point;
+            let closest = grappler.closest_point;
             grappler.current_point = closest;
             match closest {
                 Some(e) => e,
