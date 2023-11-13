@@ -18,8 +18,10 @@ impl Plugin for StateMachinePlugin {
 
 fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
     cmd.entity(player_query.single()).insert((
-        GroundedState::Idle, StateMachine::default()
+        GroundedState::Idle,
+        StateMachine::default()
             .trans::<InAirState>(GroundedTrigger, GroundedState::Idle)
+            .trans::<WallState>(GroundedTrigger, GroundedState::Idle)
             .trans::<GroundedState>(
                 StateIsTrigger(GroundedState::Walking)
                     .not()
@@ -27,10 +29,12 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
                 GroundedState::Walking,
             )
             .trans::<GroundedState>(StateIsTrigger(GroundedState::Jumping), InAirState::Rising)
+            .trans::<WallState>(StateIsTrigger(WallState::Jumping), InAirState::Rising)
             .trans::<GroundedState>(JumpTrigger, GroundedState::Jumping)
             .trans::<AnyState>(
                 FallingTrigger
                     .and(GroundedTrigger.not())
+                    .and(OnWallTrigger.not())
                     .and(StateIsTrigger(InAirState::Falling).not())
                     .and(GrapplingTrigger.not()),
                 InAirState::Falling,
@@ -39,10 +43,26 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
                 FallingTrigger
                     .not()
                     .and(GroundedTrigger.not())
+                    .and(OnWallTrigger.not())
                     .and(StateIsTrigger(InAirState::Rising).not())
                     .and(GrapplingTrigger.not()),
                 InAirState::Rising,
             )
+            .trans::<InAirState>(
+                OnWallTrigger,
+                WallState::Sliding,
+            )
+            .trans::<WallState>(
+                StateIsTrigger(WallState::Rising)
+                    .not()
+                    .and(FallingTrigger.not()),
+                WallState::Rising,
+            )
+            .trans::<WallState>(
+                StateIsTrigger(WallState::Sliding).not().and(FallingTrigger),
+                WallState::Sliding,
+            )
+            .trans::<WallState>(WalljumpTrigger, WallState::Jumping)
             .trans::<InAirState>(
                 GrapplingTrigger.and(StateIsTrigger(InAirState::Grapple).not()),
                 InAirState::Grapple,
@@ -80,7 +100,7 @@ pub mod states {
 
 pub mod triggers {
     use super::*;
-    use crate::player::movement::{velocity::*, grappler::*, jumper::*};
+    use crate::player::movement::{grappler::*, jumper::*, velocity::*};
     use bevy_rapier2d::prelude::*;
 
     #[derive(Copy, Clone, Debug, Reflect, PartialEq)]
@@ -168,6 +188,30 @@ pub mod triggers {
 
         fn trigger(&self, entity: Entity, param: Self::Param<'_, '_>) -> bool {
             param.get(entity).is_ok_and(|j| j.should_jump())
+        }
+    }
+
+    #[derive(Copy, Clone, Debug, Reflect, PartialEq)]
+    pub struct WalljumpTrigger;
+
+    impl BoolTrigger for WalljumpTrigger {
+        type Param<'w, 's> = Query<'w, 's, &'static Jumper>;
+
+        fn trigger(&self, entity: Entity, param: Self::Param<'_, '_>) -> bool {
+            param.get(entity).is_ok_and(|j| j.should_walljump())
+        }
+    }
+
+    #[derive(Copy, Clone, Debug, Reflect, PartialEq)]
+    pub struct OnWallTrigger;
+
+    impl BoolTrigger for OnWallTrigger {
+        type Param<'w, 's> = Query<'w, 's, &'static Jumper>;
+
+        fn trigger(&self, entity: Entity, param: Self::Param<'_, '_>) -> bool {
+            param
+                .get(entity)
+                .is_ok_and(|j| j.get_current_wall().is_some())
         }
     }
 }
