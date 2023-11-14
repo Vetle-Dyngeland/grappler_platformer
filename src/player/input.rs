@@ -20,6 +20,7 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
                 .insert(KeyCode::C, InputAction::Jump)
                 //.insert(KeyCode::X, InputAction::Grapple)
                 .insert(KeyCode::X, InputAction::Slingshot)
+                .insert(KeyCode::Down, InputAction::Down)
                 .build(),
         });
 }
@@ -30,4 +31,5 @@ pub enum InputAction {
     Jump,
     Grapple,
     Slingshot,
+    Down,
 }

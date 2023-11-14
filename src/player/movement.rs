@@ -13,14 +13,18 @@ pub mod gravity;
 pub mod horizontal_movement;
 pub mod jumper;
 pub mod slingshot;
+pub mod terminal_velocity;
 pub mod velocity;
+pub mod wall_movement;
 
 use grappler::*;
 use gravity::*;
 use horizontal_movement::*;
 use jumper::*;
 use slingshot::*;
+use terminal_velocity::*;
 use velocity::*;
+use wall_movement::*;
 
 pub(super) struct MovementPlugin;
 
@@ -33,10 +37,12 @@ impl Plugin for MovementPlugin {
                 (
                     kinematic_velocity,
                     kinematic_gravity,
-                    jumper,
                     horizontal_movement,
-                    grappler_movement,
+                    wall_movement,
+                    jumper,
+                    grappler,
                     slingshot,
+                    terminal_velocity,
                 )
                     .in_set(PlayerSet::Movement),
             )
@@ -46,7 +52,8 @@ impl Plugin for MovementPlugin {
             .register_type::<HorizontalMovement>()
             .register_type::<KinematicGravityUser>()
             .register_type::<Slingshot>()
-            .register_type::<Grappler>();
+            .register_type::<Grappler>()
+            .register_type::<WallMovement>();
     }
 }
 
@@ -64,19 +71,9 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
         RigidBody::KinematicPositionBased,
         KinematicVelocity::default(),
         KinematicGravityUser,
-        Jumper::new(
-            400f32,
-            0.35f32,
-            1.2f32,
-            Vec2::new(1.2f32, 0.8f32),
-            0.175f32,
-            0.2f32,
-            0.25f32,
-            (-20f32, 20f32),
-            200f32,
-            90f32,
-            1.5f32,
-        ),
+        TerminalVelocity::new(-1150f32, 1.5f32, 0.1f32),
+        Jumper::new(400f32, 0.35f32, 1.2f32, 0.175f32, 0.2f32),
+        WallMovement::new(Vec2::new(400f32, 350f32), (-20f32, 20f32), 0.25f32, 0.2f32),
         HorizontalMovement {
             max_speed: 250f32,
             acceleration_time: 0.2f32,

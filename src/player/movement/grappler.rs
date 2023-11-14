@@ -44,7 +44,7 @@ impl Grappler {
     }
 }
 
-pub fn grappler_movement(
+pub fn grappler(
     mut grappler: Query<(
         &GlobalTransform,
         &mut Grappler,

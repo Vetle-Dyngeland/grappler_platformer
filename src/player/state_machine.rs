@@ -48,10 +48,7 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
                     .and(GrapplingTrigger.not()),
                 InAirState::Rising,
             )
-            .trans::<InAirState>(
-                OnWallTrigger,
-                WallState::Sliding,
-            )
+            .trans::<InAirState>(OnWallTrigger, WallState::Sliding)
             .trans::<WallState>(
                 StateIsTrigger(WallState::Rising)
                     .not()
@@ -100,7 +97,9 @@ pub mod states {
 
 pub mod triggers {
     use super::*;
-    use crate::player::movement::{grappler::*, jumper::*, velocity::*};
+    use crate::player::movement::{
+        grappler::*, jumper::*, velocity::*, wall_movement::WallMovement,
+    };
     use bevy_rapier2d::prelude::*;
 
     #[derive(Copy, Clone, Debug, Reflect, PartialEq)]
@@ -195,10 +194,10 @@ pub mod triggers {
     pub struct WalljumpTrigger;
 
     impl BoolTrigger for WalljumpTrigger {
-        type Param<'w, 's> = Query<'w, 's, &'static Jumper>;
+        type Param<'w, 's> = Query<'w, 's, (&'static Jumper, &'static WallMovement)>;
 
         fn trigger(&self, entity: Entity, param: Self::Param<'_, '_>) -> bool {
-            param.get(entity).is_ok_and(|j| j.should_walljump())
+            param.get(entity).is_ok_and(|j| j.0.should_walljump(j.1))
         }
     }
 
@@ -206,7 +205,7 @@ pub mod triggers {
     pub struct OnWallTrigger;
 
     impl BoolTrigger for OnWallTrigger {
-        type Param<'w, 's> = Query<'w, 's, &'static Jumper>;
+        type Param<'w, 's> = Query<'w, 's, &'static WallMovement>;
 
         fn trigger(&self, entity: Entity, param: Self::Param<'_, '_>) -> bool {
             param
