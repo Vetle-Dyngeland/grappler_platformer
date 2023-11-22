@@ -72,8 +72,8 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
         KinematicVelocity::default(),
         KinematicGravityUser,
         TerminalVelocity::new(-1150f32, 1.5f32, 0.1f32),
-        Jumper::new(400f32, 0.35f32, 1.2f32, 0.175f32, 0.2f32),
-        WallMovement::new(Vec2::new(400f32, 350f32), (-20f32, 20f32), 0.25f32, 0.2f32),
+        Jumper::new(400f32, 0.35f32, 1.25f32, 0.175f32, 0.2f32),
+        WallMovement::new(Vec2::new(450f32, 350f32), (-20f32, 20f32), 0.25f32, 0.2f32),
         HorizontalMovement {
             max_speed: 250f32,
             acceleration_time: 0.2f32,
@@ -97,9 +97,9 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
             ..Default::default()
         },
         Slingshot::new(
-            800f32,
+            750f32,
             250f32,
-            Vec2::new(0.8f32, 1f32),
+            Vec2::new(1.35f32, 1f32),
             0.5f32,
             0.5f32,
             0.7f32,
