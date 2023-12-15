@@ -55,6 +55,21 @@ fn init(mut cmd: Commands) {
     cmd.spawn((
         SpriteBundle {
             sprite: Sprite {
+                color: Color::rgb_u8(205, 255, 150),
+                custom_size: Some(Vec2::new(30f32, 100f32)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(220f32, -10f32, 0f32)
+                .with_rotation(Quat::from_rotation_z(2.5f32)),
+            ..Default::default()
+        },
+        Collider::cuboid(12.75f32, 350f32),
+        Name::from("Wall #3"),
+    ));
+
+    cmd.spawn((
+        SpriteBundle {
+            sprite: Sprite {
                 color: Color::rgb_u8(255, 75, 125),
                 custom_size: Some(Vec2::new(50f32, 50f32)),
                 ..Default::default()

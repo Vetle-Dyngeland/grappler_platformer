@@ -12,6 +12,7 @@ pub mod grappler;
 pub mod gravity;
 pub mod horizontal_movement;
 pub mod jumper;
+pub mod lander;
 pub mod slingshot;
 pub mod terminal_velocity;
 pub mod velocity;
@@ -21,6 +22,7 @@ use grappler::*;
 use gravity::*;
 use horizontal_movement::*;
 use jumper::*;
+use lander::*;
 use slingshot::*;
 use terminal_velocity::*;
 use velocity::*;
@@ -43,6 +45,7 @@ impl Plugin for MovementPlugin {
                     grappler,
                     slingshot,
                     terminal_velocity,
+                    lander,
                 )
                     .in_set(PlayerSet::Movement),
             )
@@ -53,7 +56,8 @@ impl Plugin for MovementPlugin {
             .register_type::<KinematicGravityUser>()
             .register_type::<Slingshot>()
             .register_type::<Grappler>()
-            .register_type::<WallMovement>();
+            .register_type::<WallMovement>()
+            .register_type::<Lander>();
     }
 }
 
@@ -104,7 +108,8 @@ fn init(mut cmd: Commands, player_query: Query<Entity, With<Player>>) {
             0.5f32,
             0.7f32,
         ),
-        // Dont really like current grappler, will probably not include it/rework it
+        // these components are a definite maybe
+        //Lander::new(0.25f32, Vec2::new(15f32, 0.8f32), 1.2f32, 700f32, -50f32),
         //Grappler::new(300f32, 75f32, 200f32, 0.008f32, 0.2f32, 0.4f32),
     ));
 }
